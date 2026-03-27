@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<input type="text" id="1"></input>
+<input type="text" id="2"></input>
+<button onclick="u()">確定</button> 
+</head>
+
+<body>
+
+</body>
+
+<script>
+    async function u(){
+        name=document.getElementById("1").value
+        password=document.getElementById("2").value
+        if (name!="" && password!=""){
+        const url = `http://127.0.0.1:5000/?name=${name}&password=${password}`;
+        const response = await fetch(url); // 發出請求
+        const data = await response.json(); // 解析 Flask 回傳的 JSON
+        console.log(data)
+        }
+    }
+</script>
+</html>
