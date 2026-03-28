@@ -14,9 +14,8 @@ r = redis.from_url(url, decode_responses=True)
 
 CORS(app)
 
-@app.route("/")
+@app.route("/login", methods=["POST"])
 def read_user():
-    
     name = request.args.get("name")
     password = request.args.get("password")
     js={"data":None}
