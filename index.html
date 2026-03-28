@@ -28,12 +28,10 @@
 </body>
 
 <script>
-    async function log_in(){
+    
+    async function check(){
         name=document.getElementById("username").value
         password=document.getElementById("password").value
-        if(await check(name,password)){console.log("通過")}else{console.log("不通過")}
-    }
-    async function check(name,password){
         if (name!="" && password!=""){
         const url = `https://render-ihb5.onrender.com/?name=${name}&password=${password}`;
         const response = await fetch(url); // 發出請求
