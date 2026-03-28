@@ -1,33 +1,46 @@
-#flask.py
-from flask import Flask, request, jsonify
-from flask_cors import CORS  # 1. 匯入它
-import redis
-import json
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>登入</title>
 
-app = Flask(__name__)
+<link rel="stylesheet" href="style.css">
+</head>
 
-# 直接貼上你的連線字串
-url = "rediss://default:AZrhAAIncDFkYjBhY2ZhMmE5NTY0ODdhOTJhOGNkYTliNDRiMjIxOXAxMzk2NDk@guiding-weevil-39649.upstash.io:6379"
+<body>
 
-# 連線 (rediss 代表使用 TLS 加密)
-r = redis.from_url(url, decode_responses=True)
+<div class="container">
+    <h2>登入</h2>
 
-CORS(app)
+    <input type="text" id="username" name="username"required>
+    <input type="password" id="password" name="password" required>
+    <button onclick="log_in()">登入</button>
+    
 
-@app.route("/")
-def read_user():
-    name = request.args.get("name")
-    password = request.args.get("password")
-    js={"data":None}
-    data = r.json().get("user_json", f"$.{name}")
-    if data!=[]:
-        data=data[0]
-        if password==data["password"]:
-            js["data"]= f'name: {data["name"]} password: {data["password"]}'
-        else:js["data"]="password no True"
-    else:js["data"]= "no find User"
-    return jsonify(js)
+    <!-- 重點在這 -->
+    <p class="register-text">
+        還沒有帳號？
+        <a href="/register">註冊帳號</a>
+    </p>
 
-if __name__ == "__main__":
-    app.run(debug=True)
-#flask.py
+</div>
+
+</body>
+
+<script>
+    async function log_in(){
+        name=document.getElementById("username").value
+        password=document.getElementById("password").value
+        if(await check(name,password)){console.log("通過")}else{console.log("不通過")}
+    }
+    async function check(name,password){
+        if (name!="" && password!=""){
+        const url = `https://render-ihb5.onrender.com/?name=${name}&password=${password}`;
+        const response = await fetch(url); // 發出請求
+        const data = await response.json(); // 解析 Flask 回傳的 JSON
+        return true
+        }else{return false}
+    }
+</script>
+
+</html>
