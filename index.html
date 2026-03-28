@@ -36,10 +36,11 @@
         const url = `https://render-ihb5.onrender.com/?name=${name}&password=${password}`;
         const response = await fetch(url); // 發出請求
         const data = await response.json(); // 解析 Flask 回傳的 JSON
-        }
-        if(data.data="password no True")console.log("密碼錯誤")
-        if(data.data="no find User")console.log("名字錯誤")
+        if(data.data==="password no True")console.log("密碼錯誤")
+        if(data.data==="no find User")console.log("名字錯誤")
         else{console.log("通過")}
+        }
+        
     }
 </script>
 
