@@ -15,7 +15,7 @@
         name=document.getElementById("1").value
         password=document.getElementById("2").value
         if (name!="" && password!=""){
-        const url = `http://127.0.0.1:5000/?name=${name}&password=${password}`;
+        const url = `https://render-ihb5.onrender.com/?name=${name}&password=${password}`;
         const response = await fetch(url); // 發出請求
         const data = await response.json(); // 解析 Flask 回傳的 JSON
         console.log(data)
