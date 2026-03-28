@@ -1,25 +1,33 @@
-<!DOCTYPE html>
-<html>
-<head>
-<input type="text" id="1"></input>
-<input type="text" id="2"></input>
-<button onclick="u()">確定</button> 
-</head>
+#flask.py
+from flask import Flask, request, jsonify
+from flask_cors import CORS  # 1. 匯入它
+import redis
+import json
 
-<body>
+app = Flask(__name__)
 
-</body>
+# 直接貼上你的連線字串
+url = "rediss://default:AZrhAAIncDFkYjBhY2ZhMmE5NTY0ODdhOTJhOGNkYTliNDRiMjIxOXAxMzk2NDk@guiding-weevil-39649.upstash.io:6379"
 
-<script>
-    async function u(){
-        name=document.getElementById("1").value
-        password=document.getElementById("2").value
-        if (name!="" && password!=""){
-        const url = `https://render-ihb5.onrender.com/?name=${name}&password=${password}`;
-        const response = await fetch(url); // 發出請求
-        const data = await response.json(); // 解析 Flask 回傳的 JSON
-        console.log(data)
-        }
-    }
-</script>
-</html>
+# 連線 (rediss 代表使用 TLS 加密)
+r = redis.from_url(url, decode_responses=True)
+
+CORS(app)
+
+@app.route("/")
+def read_user():
+    name = request.args.get("name")
+    password = request.args.get("password")
+    js={"data":None}
+    data = r.json().get("user_json", f"$.{name}")
+    if data!=[]:
+        data=data[0]
+        if password==data["password"]:
+            js["data"]= f'name: {data["name"]} password: {data["password"]}'
+        else:js["data"]="password no True"
+    else:js["data"]= "no find User"
+    return jsonify(js)
+
+if __name__ == "__main__":
+    app.run(debug=True)
+#flask.py
