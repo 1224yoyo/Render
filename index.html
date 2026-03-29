@@ -21,7 +21,7 @@
     <!-- 重點在這 -->
     <p class="register-text">
         還沒有帳號？
-        <a onclick="handleRegisterClick()">註冊帳號</a>
+        <a href="javascript:register()">註冊帳號</a>
     </p>
 
 </div>
@@ -37,11 +37,13 @@
         const url = `https://render-ihb5.onrender.com/?name=${name}&password=${password}`;
         const response = await fetch(url); // 發出請求
         const data = await response.json(); // 解析 Flask 回傳的 JSON
-        if(data.data==="password no True")console.log("密碼錯誤")
-        else if(data.data==="no find User")console.log("名字錯誤")
-        else{console.log("通過")}
+        if(data.data==="password no True")Swal.fire("成功!")
+        else if(data.data==="no find User")Swal.fire("用戶名字錯誤")
+        else{Swal.fire("密碼錯誤")}
         }
-        
+    }
+    async function register(){
+        console.log("111")
     }
 </script>
 
