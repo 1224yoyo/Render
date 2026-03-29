@@ -23,6 +23,7 @@
         還沒有帳號？
         <a href="javascript:register()">註冊帳號</a>
     </p>
+    <p id="login_text"></p>
 
 </div>
 
@@ -31,15 +32,16 @@
 <script>
     //檢查是否正確
     async function check(){
+        let p=document.getElementById("login_text")
         name=document.getElementById("username").value
         password=document.getElementById("password").value
         if (name!="" && password!=""){
         const url = `https://render-ihb5.onrender.com/?name=${name}&password=${password}`;
         const response = await fetch(url); // 發出請求
         const data = await response.json(); // 解析 Flask 回傳的 JSON
-        if(data.data==="password no True")Swal.fire("成功!")
-        else if(data.data==="no find User")Swal.fire("用戶名字錯誤")
-        else{Swal.fire("密碼錯誤")}
+        if(data.data==="password no True")p.textContent="密碼錯誤"
+        else if(data.data==="no find User")p.textContent="名字錯誤"
+        else{}
         }
     }
     async function register(){
