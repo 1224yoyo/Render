@@ -1,33 +1,37 @@
-#flask.py
-from flask import Flask, request, jsonify
-from flask_cors import CORS  # 1. 匯入它
-import redis
-import json
+const express = require('express');
+const app = express();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
 
-app = Flask(__name__)
+let players = {}; // 伺服器存一份地圖
 
-# 直接貼上你的連線字串
-url = "rediss://default:AZrhAAIncDFkYjBhY2ZhMmE5NTY0ODdhOTJhOGNkYTliNDRiMjIxOXAxMzk2NDk@guiding-weevil-39649.upstash.io:6379"
+app.use(express.static(__dirname + '/public')); // 你的 HTML/JS 放這裡
 
-# 連線 (rediss 代表使用 TLS 加密)
-r = redis.from_url(url, decode_responses=True)
+io.on('connection', (socket) => {
+    console.log('有人進來了:', socket.id);
 
-CORS(app)
+    // 初始化新玩家
+    players[socket.id] = { x: 500, y: 500, id: socket.id };
+    
+    // 告訴新人目前的玩家狀況
+    socket.emit('currentPlayers', players);
+    // 告訴舊人有新人來了
+    socket.broadcast.emit('newPlayer', players[socket.id]);
 
-@app.route("/")
-def read_user():
-    name = request.args.get("name")
-    password = request.args.get("password")
-    js={"data":None}
-    data = r.json().get("user_json", f"$.{name}")
-    if data!=[]:
-        data=data[0]
-        if password==data["password"]:
-            js["data"]= f'name: {data["name"]} password: {data["password"]}'
-        else:js["data"]="password no True"
-    else:js["data"]= "no find User"
-    return jsonify(js)
+    // 收到移動訊息
+    socket.on('playerMovement', (movementData) => {
+        if (players[socket.id]) {
+            players[socket.id].x = movementData.x;
+            players[socket.id].y = movementData.y;
+            // 廣播給其他人
+            socket.broadcast.emit('playerMoved', players[socket.id]);
+        }
+    });
 
-if __name__ == "__main__":
-    app.run(debug=True)
-#flask.py
+    socket.on('disconnect', () => {
+        delete players[socket.id];
+        io.emit('playerDisconnected', socket.id);
+    });
+});
+
+http.listen(3000, () => { console.log('伺服器在 3000 埠跑起來囉！'); });
