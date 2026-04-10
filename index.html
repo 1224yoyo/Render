@@ -30,23 +30,92 @@
 </body>
 
 <script>
-    //檢查是否正確
-    async function check(){
-        let p=document.getElementById("login_text")
-        name=document.getElementById("username").value
-        password=document.getElementById("password").value
-        if (name!="" && password!=""){
-        const url = `https://render-ihb5.onrender.com/?name=${name}&password=${password}`;
-        const response = await fetch(url); // 發出請求
-        const data = await response.json(); // 解析 Flask 回傳的 JSON
-        if(data.data==="password no True")p.textContent="密碼錯誤"
-        else if(data.data==="no find User")p.textContent="名字錯誤"
-        else{}
+    const config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    scene: { preload, create, update }
+}
+const game = new Phaser.Game(config)
+
+let player;
+let otherPlayers = {}; // 用來存放其他人的物件，格式為 { socketId: sprite }
+let socket;
+let lastPosition = { x: 0, y: 0 }; // 記錄上次位置，減少無謂的傳輸
+
+function preload() {
+    this.load.image('player', 'ball_1.png');
+}
+
+function create() {
+    // 1. 連接到伺服器 (假設你的 Render 網址或 localhost)
+    socket = io(); 
+
+    // 建立自己的角色
+    player = this.add.image(500, 500, "player").setDisplaySize(30, 30);
+
+    // 2. 監聽伺服器傳來的「目前所有玩家」資訊
+    socket.on('currentPlayers', (players) => {
+        Object.keys(players).forEach((id) => {
+            if (id !== socket.id) {
+                addOtherPlayer(this, id, players[id]);
+            }
+        });
+    });
+
+    // 3. 監聽「新玩家加入」
+    socket.on('newPlayer', (playerInfo) => {
+        addOtherPlayer(this, playerInfo.id, playerInfo);
+    });
+
+    // 4. 監聽「玩家移動」
+    socket.on('playerMoved', (playerInfo) => {
+        if (otherPlayers[playerInfo.id]) {
+            // 平滑移動 (Interpolation)
+            this.tweens.add({
+                targets: otherPlayers[playerInfo.id],
+                x: playerInfo.x,
+                y: playerInfo.y,
+                duration: 50 // 反應時間補償
+            });
+        }
+    });
+
+    // 5. 監聽「玩家離開」
+    socket.on('playerDisconnected', (id) => {
+        if (otherPlayers[id]) {
+            otherPlayers[id].destroy();
+            delete otherPlayers[id];
+        }
+    });
+}
+
+function update() {
+    let cursors = this.input.keyboard.createCursorKeys();
+    let moved = false;
+
+    if (cursors.left.isDown) { player.x -= 2; moved = true; }
+    else if (cursors.right.isDown) { player.x += 2; moved = true; }
+    
+    if (cursors.up.isDown) { player.y -= 2; moved = true; }
+    else if (cursors.down.isDown) { player.y += 2; moved = true; }
+
+    // --- 關鍵優化：只有變動且距離夠大才傳送 ---
+    if (moved) {
+        // 檢查是否跟上次傳送的位置差很多 (例如大於 1 像素)
+        if (Math.abs(player.x - lastPosition.x) > 1 || Math.abs(player.y - lastPosition.y) > 1) {
+            socket.emit('playerMovement', { x: player.x, y: player.y });
+            lastPosition = { x: player.x, y: player.y };
         }
     }
-    async function register(){
-        console.log("111")
-    }
+}
+
+// 輔助函式：畫出別人的球
+function addOtherPlayer(scene, id, info) {
+    const other = scene.add.image(info.x, info.y, 'player').setDisplaySize(30, 30);
+    other.setTint(0xff0000); // 把別人染成紅色，方便區分
+    otherPlayers[id] = other;
+}
 </script>
 
 </html>
